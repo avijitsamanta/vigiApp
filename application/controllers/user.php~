@@ -1,0 +1,279 @@
+<?php if ( ! defined('BASEPATH')) exit('No direct script access allowed');
+error_reporting(E_ALL);
+ini_set("display_errors", 1);
+
+
+class User extends CI_Controller {
+
+	/**
+	 * Index Page for this controller.
+	 *
+	 * Maps to the following URL
+	 * 		http://example.com/index.php/welcome
+	 *	- or -  
+	 * 		http://example.com/index.php/welcome/index
+	 *	- or -
+	 * Since this controller is set as the default controller in 
+	 * config/routes.php, it's displayed at http://example.com/
+	 *
+	 * So any other public methods not prefixed with an underscore will
+	 * map to /index.php/welcome/<method_name>
+	 * @see http://codeigniter.com/user_guide/general/urls.html
+	 */
+	
+	function __construct()
+	{
+		parent::__construct();
+		
+	}
+
+	public function index()
+	{
+		$this->load->view('welcome_message');
+	}
+
+	public function checkusername()
+	{
+	      if(isset($_POST['username']) && !empty($_POST['username']) )
+	    { 
+	    	  $user_name =  $_POST['username'];
+		  
+		 $result = mysql_query("SELECT * FROM gembox_user where username = '".$user_name."'");
+		     $records = array();
+		    if(mysql_num_rows($result)) 
+		    {
+		    
+			/*$records[] = array('message'=>'Username already exist!!!' ,'status'=>'1');*/
+			$records['message']='Username already exist!!!' ;
+			$records['status'] = '0' ;
+
+		     }
+		   else
+		    {
+			$records['message']='Username Available.' ;	
+			$records['status'] = '1' ;    
+	     	     } 
+		     
+
+	    }
+	   	 header('Content-type: application/json');
+		    echo json_encode($records);
+
+	}
+
+   public function signin()
+  {
+     //print_r($_POST);
+  	if(isset($_POST['email']) && !empty($_POST['email']) &&  isset($_POST['password']) && !empty($_POST['password'])){  //required arguments
+        $useremail =  $_POST['email'];
+		$user_password =  md5($_POST['password']);
+        //$devicetoken =  $_POST['devicetoken']);
+         
+		 $query = "SELECT user_id, username, email , mobile_no as phoneno , rank,chips FROM user where email = '".$useremail."' and 	password = '".$user_password."'  " ;
+		
+        $result = mysql_query($query);
+        $records = array();
+        if(mysql_num_rows($result)) {
+            //$records[] = array('message'=>'User Logged in successfully' ,'status'=>'1');
+            $records['message'] = "User Logged in successfully" ;
+            $records['status'] = "1" ;
+            while($record = mysql_fetch_assoc($result)) {
+                $records['userdetails'] = $record ;
+            }
+        }else{
+            //$records[] = array('message'=>'Wrong Username/Password');
+			$records['message'] = "The username/password you entered is incorrect. Please try again." ;
+            $records['title'] = "Incorrect username or password" ;
+
+            $records['status'] = "0" ;
+			
+        }
+         header('Content-type: application/json');
+            echo json_encode($records);
+       
+    }
+  }
+
+
+ public function signup()
+  {
+
+       if(isset($_POST['username']) && !empty($_POST['username']) &&  isset($_POST['password']) && !empty($_POST['password']) && isset($_POST['email']) && !empty($_POST['email']) )
+    { 
+		$user_name =  $_POST['username'];
+		$user_password =  $_POST['password'];
+		$user_email =  $_POST['email'];
+
+          $image_code = ($_POST['profileimage']!='')?$_POST['profileimage']:'';
+         
+          $phoneno =  '';
+          
+
+        if(!empty($image_code))
+        {
+            $randon_num = rand(1, 1000000);
+            $image_name ='poker_'.$randon_num.'.png';
+            $profileimage = $image_name ;
+            $binary=base64_decode($image_code);
+            header('Content-Type: image/png; charset=utf-8');
+            $file = fopen('/var/www/html/chip_n_poker/upload/profile_pics/'.$image_name, 'wb');
+            fwrite($file, $binary);
+            fclose($file);
+        }
+        else
+        {
+            $profileimage =" " ;
+        }   
+       
+       
+         $result = mysql_query("SELECT * FROM user where username = '".$user_name."'");
+             $records = array();
+            if(mysql_num_rows($result)) 
+            {
+            
+		$records['message'] = 'This username has been taken by another user.';
+		$records['title'] = 'Username already exist';
+		$records['status'] = "0" ;
+
+             }
+           else
+            {
+              
+              $result = mysql_query("SELECT * FROM user where email = '".$user_email."'");
+                $records = array(); 
+                if(mysql_num_rows($result)) 
+                {
+                
+                $records['message'] = 'This email address has been taken by another account.';
+                $records['title'] = 'Account already exists';
+		$records['status'] = "0" ;
+                
+                }
+                else
+                {
+                       $insert_query = "INSERT INTO user SET
+                                username = '".addslashes($user_name)."',
+                                password =  '".md5($user_password)."',
+                                email = '".$user_email."',
+                                profileimage = '".$profileimage."',
+                                mobile_no = '".$phoneno."',
+                                rank=1,
+                                chips=1000
+                                " ;
+                            
+                         mysql_query($insert_query);
+                           /*$records[] = array('message'=>'User Registered successfully' ,'status'=>'1'); */
+                           $records['message'] = 'User Registered successfully111';
+                           $records['status'] = "1" ; 
+                    
+                }    
+
+            } 
+      
+    }
+    else 
+    {
+    	$records['message'] = 'User Registered Unsuccessfull' ;
+		$records['status'] = '0' ;
+			
+    }	
+
+     header('Content-type: application/json');
+            echo json_encode($records);
+     }
+
+public function forgotpassword()
+   {
+     if(isset($_POST['email']) && !empty($_POST['email']))
+       {
+	       	$user_email =  $_POST['email']; 
+	        $query = "SELECT * FROM user where email = '".$user_email."'" ;
+		    $result = mysql_query($query) or die(mysql_error());
+	        $records = array();
+	        if(mysql_num_rows($result)) 
+			{
+				while($record = mysql_fetch_array($result)) 
+				 {
+                             $name = $record['username'] ;
+		                     $emailto = $record['email'] ;
+		                      
+                 }
+               
+                 $message = '<html>
+									<head></head>
+									<body>
+									<div style="margin:0;padding:0; background:#A71E22; padding-bottom:35px; display:block;">
+										<table width="100%" cellspacing="0" cellpadding="0">
+											<tr>
+												<td align="center"><a href="#" style="text-align:center; padding:35px 25%; float:left;"><img src="" /></a></td>
+											</tr>
+											<tr>
+												<td>
+													<table width="70%" cellspacing="0" cellpadding="0" style="background:#FBB816; margin:0 0 25px 14%;-webkit-box-shadow: 0px 0px 5px 0px rgba(197,197,197,1);
+								-moz-box-shadow: 0px 0px 5px 0px rgba(197,197,197,1);
+								box-shadow: 0px 0px 5px 0px rgba(197,197,197,1); border-radius:6px;">
+														<tr>
+															<td style="padding: 35px 40px; color: rgb(147, 144, 145); font-size: 14px; font-family: arial; line-height: 18px; text-align:center; color:#FFFFFF;">
+															<strong style="font-size:16px; line-height:25px; color:#FFFFFF">Hi '.$name.',</strong><br />
+															<br /><br />Your Password  is '.$freashpassword.'</td>
+															
+															
+														</tr>
+													</table>
+												</td>
+											</tr>
+										</table>
+									</div></body></html>';	
+
+									$subject = "poker forgot password :" ;
+									$fromemail = "hrituparno@digitalaptech.com" ;
+									$fromname   = "Poker Registration Team" ;
+									$this->load->library('email'); // load email library
+                                   // $this->email->from( $fromemail, $fromname);
+    							    $this->email->from('hrituparno@digitalaptech.com', 'Gembox Registration Team');
+    								$this->email->to($emailto);
+   
+    								$this->email->subject($subject);
+
+    								$this->email->message($message);
+    								if ($this->email->send())
+    								{
+
+    									 $records['message'] = "Password recovery email sent to your mailbox :" ;
+                                         $records['status'] = "1" ;
+                  
+			                 	   }
+                                else{
+        								$records['message'] = "Email Sending Failed :" ;
+                                         $records['status'] = "0" ;
+				                    }
+
+	                  }	
+
+			}
+			else
+			{
+				$records['message'] = "This Email is not Register With Us" ;
+                $records['status'] = "0" ;
+			}	
+
+			header('Content-type: application/json');
+            echo json_encode($records);
+
+       }	
+
+    
+
+
+   
+
+
+
+
+
+
+}
+
+
+/* End of file welcome.php */
+/* Location: ./application/controllers/welcome.php */

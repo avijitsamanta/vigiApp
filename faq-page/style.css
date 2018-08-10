@@ -1,0 +1,21 @@
+/* Custom Css */
+* { -webkit-box-sizing: border-box; -moz-box-sizing: border-box; box-sizing: border-box; outline: none !important; }
+.clearfix { clear: both; }
+ul { padding-left: 20px; margin: 15px 0 0; }
+li { list-style-type: disc; margin-bottom: 8px; }
+li:last-child { margin-bottom: 0; }
+p { margin: 0 0 12px; }
+p:last-of-type { margin-bottom: 0; }
+.container { max-width: 1200px; margin: 0 auto; padding: 0 15px; }
+
+#accordion h3 { margin: 10px 0 0; background: url("images/icon-expand.png") no-repeat 10px center; font-size: 16px; line-height: 22px; color: #333; padding: 10px; padding-left: 50px; cursor: pointer; border-width: 1px; border-style: solid; border-color: #333; }
+#accordion h3.ui-state-active { cursor: default; background: url("images/icon-collaps.png") no-repeat 10px center; }
+#accordion .ui-accordion-content { margin: 0; padding: 10px; border-width: 0 1px 1px; border-style: solid; border-color: #333; }
+#accordion .ui-accordion-content p { font-size: 14px; line-height: 20px; color: #000; }
+
+
+.toc h3 { font-size: 22px; line-height: 28px; margin: 0 0 15px; }
+.toc p { font-size: 15px; line-height: 21px; }
+
+
+
